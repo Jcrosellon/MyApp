@@ -1,11 +1,15 @@
-// components/HomeScreen.js
+// /Users/mariapaz/MyApp/components/HomeScreen.js
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bienvenido a la aplicación</Text>
+      <Button
+        title="Go to Reservations"
+        onPress={() => navigation.navigate('Reservations')}
+      />
     </View>
   );
 };

@@ -1,32 +1,41 @@
+// /Users/mariapaz/MyApp/components/ReservationsScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, Alert } from 'react-native';
-import api from '../api/axios'; // Importa Axios
+import { View, Text, Button, FlatList } from 'react-native';
+import axios from '../api/axios';
 
-export default function ReservationsScreen() {
-  const [reservations, setReservations] = useState([]);
+const ReservationsScreen = ({ navigation }) => {
+    const [reservas, setReservas] = useState([]);
 
-  useEffect(() => {
-    const fetchReservations = async () => {
-      try {
-        const response = await api.get('/reservations'); // Endpoint de ejemplo
-        setReservations(response.data);
-      } catch (error) {
-        Alert.alert('Error', 'No se pudo cargar las reservas');
-        console.error(error);
-      }
+    useEffect(() => {
+        axios.get('/reserva')
+            .then(response => {
+                setReservas(response.data);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }, []);
+
+    const renderReserva = ({ item }) => (
+        <View>
+            <Text>{`Fecha: ${item.FECHA_RESERVA}`}</Text>
+            <Text>{`Estado: ${item.ESTADO_RESERVA}`}</Text>
+            <Text>{`Valor: ${item.VALOR}`}</Text>
+            <Button title="Reservar" onPress={() => handleReserva(item.ID)} />
+        </View>
+    );
+
+    const handleReserva = (id) => {
+        // lógica para manejar la reserva
     };
 
-    fetchReservations();
-  }, []);
+    return (
+        <FlatList
+            data={reservas}
+            renderItem={renderReserva}
+            keyExtractor={item => item.ID.toString()}
+        />
+    );
+};
 
-  return (
-    <View>
-      {reservations.map((reservation, index) => (
-        <View key={index}>
-          <Text>{reservation.name}</Text>
-          <Button title="Reserve" onPress={() => {/* lógica para reservar */}} />
-        </View>
-      ))}
-    </View>
-  );
-}
+export default ReservationsScreen;
