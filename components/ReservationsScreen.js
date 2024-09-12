@@ -1,61 +1,66 @@
-import React, { useEffect, useState } from 'react'; // Asegúrate de importar useEffect y useState
-import { View, Text, Button, FlatList, Alert } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import axios from '../api/axios';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, Button, FlatList, Alert } from 'react-native';
+import axios from '../api/axios'; // Archivo axios.js
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Para obtener el token
 
-
-const ReservationsScreen = ({ navigation }) => {
-    const [reservas, setReservas] = useState([]);
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(new Date());
+const ReservationsScreen = () => {
+    const [zonasComunes, setZonasComunes] = useState([]);
 
     useEffect(() => {
-        axios.get('/reserva')
-            .then(response => {
-                setReservas(response.data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        const fetchZonasComunes = async () => {
+            try {
+                const token = await AsyncStorage.getItem('token');
+                const response = await axios.get('/zonas_comunes', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setZonasComunes(response.data);
+            } catch (error) {
+                Alert.alert('Error', 'No se pudieron cargar las zonas comunes.');
+            }
+        };
+
+        fetchZonasComunes();
     }, []);
 
-    const renderReserva = ({ item }) => (
+    const renderZonaComun = ({ item }) => (
         <View>
-            <Text>{`Fecha: ${item.FECHA_RESERVA}`}</Text>
-            <Text>{`Estado: ${item.ESTADO_RESERVA}`}</Text>
-            <Text>{`Valor: ${item.VALOR}`}</Text>
+            <Image source={{ uri: item.IMAGEN_URL }} style={{ width: 100, height: 100 }} />
+            <Text>{item.NOMBRE}</Text>
+            <Text>{item.DESCRIPCION}</Text>
+            <Text>Precio: {item.PRECIO}</Text>
             <Button title="Reservar" onPress={() => handleReserva(item.ID)} />
         </View>
     );
 
-    const handleReserva = (id) => {
-        // Lógica para manejar la reserva
-        // Por ejemplo, mostrar un selector de fecha
-        setShowDatePicker(true);
-    };
+    const handleReserva = async (idZonaComun) => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const response = await axios.post('/reservas', {
+                ID_ZONA_COMUN: idZonaComun,
+                FECHA_RESERVA: new Date().toISOString().split('T')[0],
+                ID_USUARIO: 1, // Aquí debes usar el ID del usuario logueado
+                ESTADO_RESERVA: 'Pendiente',
+                OBSERVACION_ENTREGA: '',
+                OBSERVACION_RECIBE: '',
+                VALOR: 0 // Puedes ajustar el valor de acuerdo al precio de la zona
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
-    const onDateChange = (event, selectedDate) => {
-        setShowDatePicker(false);
-        if (selectedDate) {
-            setSelectedDate(selectedDate);
-            // Lógica para manejar la fecha seleccionada
+            Alert.alert('Reserva exitosa', 'Tu reserva ha sido creada.');
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo realizar la reserva.');
         }
     };
 
     return (
         <View>
+            <Text>Zonas Comunes Disponibles</Text>
             <FlatList
-                data={reservas}
-                renderItem={renderReserva}
-                keyExtractor={item => item.ID.toString()}
+                data={zonasComunes}
+                renderItem={renderZonaComun}
+                keyExtractor={(item) => item.ID.toString()}
             />
-            {showDatePicker && (
-                <DateTimePicker
-                    mode="date"
-                    value={selectedDate}
-                    onChange={onDateChange}
-                />
-            )}
         </View>
     );
 };
