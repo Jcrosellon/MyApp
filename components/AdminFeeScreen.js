@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Button, Alert } from 'react-native';
-import api from '../api/axios'; // Importa Axios
+import api from '../api/axios';
 
 export default function AdminFeeScreen() {
+  const [fee, setFee] = useState(null);
+
   const handleGenerateFee = async () => {
     try {
-      const response = await api.post('/generate-fee'); // Endpoint de ejemplo
-      Alert.alert('Cuota Generada', 'La cuota de administración ha sido generada');
+      const response = await api.post('/generate-fee');
+      setFee(response.data.fee); // Asume que la respuesta contiene la cuota generada
+      Alert.alert('Cuota Generada', `La cuota de administración es ${response.data.fee}`);
     } catch (error) {
       Alert.alert('Error', 'No se pudo generar la cuota');
       console.error(error);
@@ -14,8 +17,12 @@ export default function AdminFeeScreen() {
   };
 
   const handlePrintFee = () => {
-    // Lógica para imprimir cuota
-    Alert.alert('Imprimir Cuota', 'Imprimiendo la cuota...');
+    if (fee) {
+      // Lógica para imprimir cuota
+      Alert.alert('Imprimir Cuota', `Imprimiendo la cuota de ${fee}`);
+    } else {
+      Alert.alert('Error', 'No hay cuota para imprimir');
+    }
   };
 
   return (

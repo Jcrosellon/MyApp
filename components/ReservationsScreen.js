@@ -1,10 +1,13 @@
-// /Users/mariapaz/MyApp/components/ReservationsScreen.js
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react'; // Asegúrate de importar useEffect y useState
+import { View, Text, Button, FlatList, Alert } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from '../api/axios';
+
 
 const ReservationsScreen = ({ navigation }) => {
     const [reservas, setReservas] = useState([]);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
     useEffect(() => {
         axios.get('/reserva')
@@ -26,15 +29,34 @@ const ReservationsScreen = ({ navigation }) => {
     );
 
     const handleReserva = (id) => {
-        // lógica para manejar la reserva
+        // Lógica para manejar la reserva
+        // Por ejemplo, mostrar un selector de fecha
+        setShowDatePicker(true);
+    };
+
+    const onDateChange = (event, selectedDate) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            setSelectedDate(selectedDate);
+            // Lógica para manejar la fecha seleccionada
+        }
     };
 
     return (
-        <FlatList
-            data={reservas}
-            renderItem={renderReserva}
-            keyExtractor={item => item.ID.toString()}
-        />
+        <View>
+            <FlatList
+                data={reservas}
+                renderItem={renderReserva}
+                keyExtractor={item => item.ID.toString()}
+            />
+            {showDatePicker && (
+                <DateTimePicker
+                    mode="date"
+                    value={selectedDate}
+                    onChange={onDateChange}
+                />
+            )}
+        </View>
     );
 };
 
