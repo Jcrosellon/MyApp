@@ -1,3 +1,4 @@
+// components/LoginScreen.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
 import axios from '../api/axios'; // Archivo axios.js
@@ -7,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // Para ma
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigation = useNavigation(); // Para navegar a la pantalla de reservas
+  const navigation = useNavigation(); // Para navegar a la pantalla de pestañas
 
   const handleLogin = async () => {
     try {
@@ -17,8 +18,8 @@ const LoginScreen = () => {
       // Almacenar token
       await AsyncStorage.setItem('token', token);
 
-      // Redirigir a la pantalla de reservas
-      navigation.navigate('Reservations');
+      // Redirigir a la pantalla de pestañas
+      navigation.navigate('MainTabs');
     } catch (error) {
       Alert.alert('Error de autenticación', 'Usuario o contraseña incorrectos');
     }

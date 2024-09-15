@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button, FlatList, Alert } from 'react-native';
-import axios from '../api/axios'; // Archivo axios.js
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para obtener el token
+import axios from '../api/axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ReservationsScreen = () => {
     const [zonasComunes, setZonasComunes] = useState([]);
@@ -22,15 +22,23 @@ const ReservationsScreen = () => {
         fetchZonasComunes();
     }, []);
 
-    const renderZonaComun = ({ item }) => (
-        <View>
-            <Image source={{ uri: item.IMAGEN_URL }} style={{ width: 100, height: 100 }} />
-            <Text>{item.NOMBRE}</Text>
-            <Text>{item.DESCRIPCION}</Text>
-            <Text>Precio: {item.PRECIO}</Text>
-            <Button title="Reservar" onPress={() => handleReserva(item.ID)} />
-        </View>
-    );
+    const renderZonaComun = ({ item }) => {
+        const imageUrl = item.IMAGEN_URL || '';
+
+        return (
+            <View>
+                {imageUrl ? (
+                    <Image source={{ uri: imageUrl }} style={{ width: 100, height: 100 }} />
+                ) : (
+                    <Text>No hay imagen disponible</Text>
+                )}
+                <Text>{item.NOMBRE}</Text>
+                <Text>{item.DESCRIPCION}</Text>
+                <Text>Precio: {item.PRECIO}</Text>
+                <Button title="Reservar" onPress={() => handleReserva(item.ID)} />
+            </View>
+        );
+    };
 
     const handleReserva = async (idZonaComun) => {
         try {
@@ -38,11 +46,11 @@ const ReservationsScreen = () => {
             const response = await axios.post('/reservas', {
                 ID_ZONA_COMUN: idZonaComun,
                 FECHA_RESERVA: new Date().toISOString().split('T')[0],
-                ID_USUARIO: 1, // Aquí debes usar el ID del usuario logueado
+                ID_USUARIO: 1,
                 ESTADO_RESERVA: 'Pendiente',
                 OBSERVACION_ENTREGA: '',
                 OBSERVACION_RECIBE: '',
-                VALOR: 0 // Puedes ajustar el valor de acuerdo al precio de la zona
+                VALOR: 0
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });

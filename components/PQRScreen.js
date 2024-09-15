@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 
-
 export default function PQRScreen() {
   const [type, setType] = useState('');
   const [message, setMessage] = useState('');

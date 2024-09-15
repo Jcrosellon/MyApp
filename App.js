@@ -1,11 +1,17 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import AppNavigator from './navigation/AppNavigator';
+import { StyleSheet, View } from 'react-native';
+import AppNavigator from './navigation/AppNavigator'; // Ajusta la ruta según tu estructura
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <View style={styles.container}>
       <AppNavigator />
-    </NavigationContainer>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
