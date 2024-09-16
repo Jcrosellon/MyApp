@@ -26,11 +26,29 @@ const ReservationsScreen = () => {
     const handleReserve = async (id) => {
         try {
             const token = await AsyncStorage.getItem('token');
-            const response = await axios.post(`/areas_comunes/reservar/${id}`, {}, {
+            const userId = await AsyncStorage.getItem('userId');
+
+            console.log('Token:', token); // Verifica que el token esté disponible
+            console.log('User ID:', userId); // Verifica que el ID de usuario esté disponible
+
+            if (!userId) {
+                Alert.alert('Error', 'No se ha encontrado el ID de usuario.');
+                return;
+            }
+
+            const response = await axios.post(`/reservas/create`, {
+                ID_AREA_COMUN: id,
+                FECHA_RESERVA: new Date().toISOString().split('T')[0],
+                ESTADO_RESERVA: 'Pendiente',
+                ID_USUARIO: userId,
+                VALOR: 100
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
             Alert.alert('Reserva exitosa', 'Tu reserva ha sido realizada con éxito.');
         } catch (error) {
+            console.error('Error al realizar la reserva:', error.response || error);
             Alert.alert('Error', 'Hubo un problema al realizar la reserva.');
         }
     };

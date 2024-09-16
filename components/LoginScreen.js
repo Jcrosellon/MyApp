@@ -12,15 +12,17 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       const response = await axios.post('/users/login', { email, password });
-      const { token } = response.data;
+      const { token, userId } = response.data;
 
       await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('userId', userId.toString()); // Guarda el userId en AsyncStorage
 
       navigation.navigate('MainTabs');
     } catch (error) {
       Alert.alert('Error de autenticación', 'Usuario o contraseña incorrectos');
     }
   };
+
 
   return (
     <View>
