@@ -1,3 +1,4 @@
+// components/AdminFeeScreen.js
 import React, { useState } from 'react';
 import { View, Button, Alert } from 'react-native';
 import api from '../api/axios';
