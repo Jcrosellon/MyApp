@@ -86,7 +86,6 @@ export default function PQRScreen() {
       <TextInput placeholder="Mensaje" value={message} onChangeText={setMessage} />
       <Button title="Cargar Archivos" onPress={handleSelectFiles} />
       <Button title="Enviar PQR" onPress={handleSendPQR} />
-      <Button title="Volver" onPress={() => {/* Lógica para volver */ }} />
     </View>
   );
 }

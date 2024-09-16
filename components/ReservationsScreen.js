@@ -1,5 +1,6 @@
+// components/ReservationsScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button, FlatList, Alert } from 'react-native';
+import { View, Text, FlatList, Alert, Button, Image, StyleSheet } from 'react-native';
 import axios from '../api/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -10,67 +11,75 @@ const ReservationsScreen = () => {
         const fetchZonasComunes = async () => {
             try {
                 const token = await AsyncStorage.getItem('token');
-                const response = await axios.get('/zonas_comunes', {
+                const response = await axios.get('/areas_comunes', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setZonasComunes(response.data);
             } catch (error) {
-                Alert.alert('Error', 'No se pudieron cargar las zonas comunes.');
+                Alert.alert('Error', 'No se pudieron cargar las áreas comunes.');
             }
         };
 
         fetchZonasComunes();
     }, []);
 
-    const renderZonaComun = ({ item }) => {
-        const imageUrl = item.IMAGEN_URL || '';
-
-        return (
-            <View>
-                {imageUrl ? (
-                    <Image source={{ uri: imageUrl }} style={{ width: 100, height: 100 }} />
-                ) : (
-                    <Text>No hay imagen disponible</Text>
-                )}
-                <Text>{item.NOMBRE}</Text>
-                <Text>{item.DESCRIPCION}</Text>
-                <Text>Precio: {item.PRECIO}</Text>
-                <Button title="Reservar" onPress={() => handleReserva(item.ID)} />
-            </View>
-        );
-    };
-
-    const handleReserva = async (idZonaComun) => {
+    const handleReserve = async (id) => {
         try {
             const token = await AsyncStorage.getItem('token');
-            const response = await axios.post('/reservas', {
-                ID_ZONA_COMUN: idZonaComun,
-                FECHA_RESERVA: new Date().toISOString().split('T')[0],
-                ID_USUARIO: 1,
-                ESTADO_RESERVA: 'Pendiente',
-                OBSERVACION_ENTREGA: '',
-                OBSERVACION_RECIBE: '',
-                VALOR: 0
-            }, {
+            const response = await axios.post(`/areas_comunes/reservar/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-
-            Alert.alert('Reserva exitosa', 'Tu reserva ha sido creada.');
+            Alert.alert('Reserva exitosa', 'Tu reserva ha sido realizada con éxito.');
         } catch (error) {
-            Alert.alert('Error', 'No se pudo realizar la reserva.');
+            Alert.alert('Error', 'Hubo un problema al realizar la reserva.');
         }
     };
 
-    return (
-        <View>
-            <Text>Zonas Comunes Disponibles</Text>
-            <FlatList
-                data={zonasComunes}
-                renderItem={renderZonaComun}
-                keyExtractor={(item) => item.ID.toString()}
-            />
+    const renderZonaComun = ({ item }) => (
+        <View style={styles.card}>
+            <Text style={styles.title}>{item.NOMBRE}</Text>
+            {item.IMAGEN_URL ? (
+                <Image source={{ uri: item.IMAGEN_URL }} style={styles.image} />
+            ) : (
+                <Text>No hay imagen disponible</Text>
+            )}
+            <Text>{item.DESCRIPCION}</Text>
+            <Text>Precio: {item.PRECIO}</Text>
+            <Button title="Reservar" onPress={() => handleReserve(item.ID)} />
         </View>
     );
+
+    return (
+        <FlatList
+            data={zonasComunes}
+            renderItem={renderZonaComun}
+            keyExtractor={(item) => item.ID.toString()}
+        />
+    );
 };
+
+const styles = StyleSheet.create({
+    card: {
+        padding: 10,
+        margin: 10,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 5,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    image: {
+        width: '100%',
+        height: 200,
+        marginBottom: 10,
+        borderRadius: 8,
+    },
+});
 
 export default ReservationsScreen;

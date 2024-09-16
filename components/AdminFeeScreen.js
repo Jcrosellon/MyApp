@@ -1,4 +1,3 @@
-// components/AdminFeeScreen.js
 import React, { useState } from 'react';
 import { View, Button, Alert } from 'react-native';
 import api from '../api/axios';
@@ -8,8 +7,8 @@ export default function AdminFeeScreen() {
 
   const handleGenerateFee = async () => {
     try {
-      const response = await api.post('/generate-fee');
-      setFee(response.data.fee); // Asume que la respuesta contiene la cuota generada
+      const response = await api.post('/cuotas_administracion/generate');
+      setFee(response.data.fee); // Asegúrate de que `fee` sea el campo correcto
       Alert.alert('Cuota Generada', `La cuota de administración es ${response.data.fee}`);
     } catch (error) {
       Alert.alert('Error', 'No se pudo generar la cuota');
@@ -19,7 +18,6 @@ export default function AdminFeeScreen() {
 
   const handlePrintFee = () => {
     if (fee) {
-      // Lógica para imprimir cuota
       Alert.alert('Imprimir Cuota', `Imprimiendo la cuota de ${fee}`);
     } else {
       Alert.alert('Error', 'No hay cuota para imprimir');
