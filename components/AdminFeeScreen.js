@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Button, Text, Alert, ScrollView } from 'react-native';
+import { View, Button, Text, Alert, ScrollView, StyleSheet } from 'react-native';
 import api from '../api/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// Cambia la importación de RNPrint a expo-print si decides usar expo-print
 import * as Print from 'expo-print';
 
 export default function AdminFeeScreen() {
@@ -17,19 +16,15 @@ export default function AdminFeeScreen() {
         return;
       }
 
-      // Obtener las cuotas del usuario
       const response = await api.get(`/cuotas_administracion/user/${userId}`);
-
-      console.log('Respuesta de la API:', response.data);
-
       if (response.data.response === 404) {
         Alert.alert('Sin Cuotas Disponibles', response.data.message);
-        setFeeData(null); // Asegúrate de limpiar los datos previos
+        setFeeData(null);
         setIsFeeGenerated(false);
       } else {
-        setFeeData(response.data.data); // Asigna los datos de la cuota
+        setFeeData(response.data.data);
         setIsFeeGenerated(true);
-        Alert.alert('Cuota Encontrada', 'La cuota se ha cargado correctamente.');
+
       }
     } catch (error) {
       Alert.alert('Error', 'No se pudo obtener la cuota.');
@@ -40,7 +35,6 @@ export default function AdminFeeScreen() {
   const handlePrintFee = async () => {
     if (feeData) {
       try {
-        // Usa Print.printAsync si estás usando expo-print
         await Print.printAsync({
           html: `
             <h1>Cuota de Administración</h1>
@@ -53,7 +47,7 @@ export default function AdminFeeScreen() {
         });
       } catch (error) {
         Alert.alert('Error', 'No se pudo imprimir la cuota.');
-        console.error(error);
+
       }
     } else {
       Alert.alert('Error', 'No hay cuota para imprimir.');
@@ -62,28 +56,48 @@ export default function AdminFeeScreen() {
 
   return (
     <ScrollView>
-      <View>
-        <Button title="Generar Cuota de Administración" onPress={handleGenerateFee} />
-
-        {/* Solo mostrar los detalles de la cuota si hay datos */}
+      <View style={styles.card}>
+        <Button style={styles.button} title="Generar Cuota de Administración" onPress={handleGenerateFee} />
         {feeData ? (
           <View>
-            <Text>Fecha del Mes: {feeData.FECHA_MES || 'No disponible'}</Text>
-            <Text>Estado: {feeData.ESTADO || 'No disponible'}</Text>
-            <Text>Valor: {feeData.VALOR || 'No disponible'}</Text>
-            <Text>No de Apto: {feeData.NO_APTO || 'No disponible'}</Text>
-
-            <Text>Fecha de Pago: {feeData.FECHA_PAGO || 'No pagado'}</Text>
+            <Text style={styles.text}>Fecha del Mes: {feeData.FECHA_MES || 'No disponible'}</Text>
+            <Text style={styles.text}>Estado: {feeData.ESTADO || 'No disponible'}</Text>
+            <Text style={styles.text}>Valor: {feeData.VALOR || 'No disponible'}</Text>
+            <Text style={styles.text}>No de Apto: {feeData.NO_APTO || 'No disponible'}</Text>
+            <Text style={styles.text}>Fecha de Pago: {feeData.FECHA_PAGO || 'No pagado'}</Text>
           </View>
         ) : (
-          <Text>No hay cuota disponible para mostrar.</Text>
+          <Text></Text>
         )}
-
-        {/* Mostrar el botón "Imprimir Cuota" solo si se ha generado una cuota */}
         {isFeeGenerated && (
-          <Button title="Imprimir Cuota" onPress={handlePrintFee} />
+          <Button style={styles.button} title="Imprimir Cuota" onPress={handlePrintFee} />
         )}
       </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    padding: 80,
+    margin: 30,
+    marginTop: 70,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: 'black',
+    shadowOffset: { width: 7, height: 13 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  button: {
+    fontSize: 38,
+    fontWeight: 'bold',
+  },
+  text: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  }
+});

@@ -79,13 +79,14 @@ const ReservationsScreen = () => {
 const styles = StyleSheet.create({
     card: {
         padding: 10,
-        margin: 10,
+        margin: 20,
+        backgroundColor: '#fff',
         backgroundColor: '#fff',
         borderRadius: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowColor: 'black',
+        shadowOffset: { width: 7, height: 13 },
         shadowOpacity: 0.8,
-        shadowRadius: 2,
+        shadowRadius: 8,
         elevation: 5,
     },
     title: {
