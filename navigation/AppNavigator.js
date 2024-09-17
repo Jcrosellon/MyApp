@@ -1,4 +1,3 @@
-// navigation/AppNavigator.js
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -30,7 +29,6 @@ const AppNavigator = () => {
       <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="MainTabs" component={TabNavigator} />
-        {/* Puedes añadir más pantallas aquí */}
       </Stack.Navigator>
     </NavigationContainer>
   );
