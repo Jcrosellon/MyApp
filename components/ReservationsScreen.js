@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     button: {
-        backgroundColor: '#909090FF',
+        backgroundColor: '#A6A6A6FF',
         borderRadius: 8,
         padding: 8,
         alignItems: 'center',
@@ -210,10 +210,10 @@ const styles = StyleSheet.create({
         elevation: 4,
     },
     buttonClose: {
-        backgroundColor: '#868687FF',
+        backgroundColor: '#A6A6A6FF',
     },
     buttonCancel: {
-        backgroundColor: '#959493FF', // Un color rojo para el botón de cancelar
+        backgroundColor: '#A6A6A6FF', // Un color rojo para el botón de cancelar
     },
     textStyle: {
         color: 'white',

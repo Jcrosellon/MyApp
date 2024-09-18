@@ -16,8 +16,8 @@ const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="Reservations" component={ReservationsScreen} />
-      <Tab.Screen name="AdminFee" component={AdminFeeScreen} />
+      <Tab.Screen name="Reservas" component={ReservationsScreen} />
+      <Tab.Screen name="Generar cuota" component={AdminFeeScreen} />
       <Tab.Screen name="PQR" component={PQRScreen} />
     </Tab.Navigator>
   );
