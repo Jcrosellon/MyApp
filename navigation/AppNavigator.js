@@ -28,7 +28,7 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen name="ADMIRED" component={TabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
