@@ -3,6 +3,7 @@ import { View, Text, FlatList, Alert, Button, Image, StyleSheet, Modal, Touchabl
 import axios from '../api/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import moment from 'moment-timezone';
 
 const ReservationsScreen = () => {
     const [zonasComunes, setZonasComunes] = useState([]);
@@ -49,20 +50,31 @@ const ReservationsScreen = () => {
         try {
             const token = await AsyncStorage.getItem('token');
             const userId = await AsyncStorage.getItem('userId');
+            const emailUsuario = await AsyncStorage.getItem('email');
 
-            if (!userId) {
-                Alert.alert('Error', 'No se ha encontrado el ID de usuario.');
+            if (!userId || !emailUsuario) {
+                Alert.alert('Error', 'No se han encontrado los datos del usuario.');
                 return;
             }
 
-            const estadoReserva = 'Pendiente'; // Definición fija del estado de reserva
+            const estadoReservaId = 1; // ID fijo para "Pendiente"
 
+            // Crear las fechas en el formato 'YYYY-MM-DD HH:mm:ss' en la zona horaria de Bogotá
+            const startDateObj = moment.tz(`${selectedDate} ${selectedTime}`, 'YYYY-MM-DD HH:mm', 'America/Bogota').toDate();
+            const endDateObj = new Date(startDateObj.getTime() + 2 * 60 * 60 * 1000); // Sumar 2 horas
+
+            const startDateTime = formatDateTime(startDateObj);
+            const endDateTime = formatDateTime(endDateObj);
+
+            // Asegurarse de que el email_usuario también se envíe al servidor
             const response = await axios.post(`/reservas/create`, {
                 ID_AREA_COMUN: currentItemId,
-                FECHA_RESERVA: `${selectedDate} ${selectedTime}`,
-                ESTADO_RESERVA: estadoReserva,
+                FECHA_RESERVA: startDateTime,
+                FECHA_FIN: endDateTime,
+                ID_ESTADO_RESERVA: estadoReservaId,
                 ID_USUARIO: userId,
-                VALOR: 100
+                VALOR: 100,
+                email_usuario: emailUsuario // Enviar el email
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -76,6 +88,8 @@ const ReservationsScreen = () => {
             Alert.alert('Error', 'Hubo un problema al realizar la reserva.');
         }
     };
+
+
 
     const handleCancel = () => {
         setSelectedDate(null);
