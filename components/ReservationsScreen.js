@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Alert, Button, Image, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, Alert, Image, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import axios from '../api/axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -13,6 +13,7 @@ const ReservationsScreen = () => {
     const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
     const [isModalVisible, setModalVisible] = useState(false);
     const [currentItemId, setCurrentItemId] = useState(null);
+    const [reservationDuration, setReservationDuration] = useState(2); // Duración en horas
 
     useEffect(() => {
         const fetchZonasComunes = async () => {
@@ -37,7 +38,9 @@ const ReservationsScreen = () => {
     };
 
     const handleTimeConfirm = (time) => {
-        setSelectedTime(time.toISOString().split('T')[1].slice(0, 5));
+        // Ajusta la hora a la zona horaria local de Bogotá
+        const selectedTimeStr = time.toISOString().split('T')[1].slice(0, 5);
+        setSelectedTime(selectedTimeStr);
         setTimePickerVisibility(false);
     };
 
@@ -61,10 +64,10 @@ const ReservationsScreen = () => {
 
             // Crear las fechas en el formato 'YYYY-MM-DD HH:mm:ss' en la zona horaria de Bogotá
             const startDateObj = moment.tz(`${selectedDate} ${selectedTime}`, 'YYYY-MM-DD HH:mm', 'America/Bogota').toDate();
-            const endDateObj = new Date(startDateObj.getTime() + 2 * 60 * 60 * 1000); // Sumar 2 horas
+            const endDateObj = new Date(startDateObj.getTime() + reservationDuration * 60 * 60 * 1000); // Sumar 2 horas
 
-            const startDateTime = formatDateTime(startDateObj);
-            const endDateTime = formatDateTime(endDateObj);
+            const startDateTime = moment(startDateObj).format('YYYY-MM-DD HH:mm:ss');
+            const endDateTime = moment(endDateObj).format('YYYY-MM-DD HH:mm:ss');
 
             // Asegurarse de que el email_usuario también se envíe al servidor
             const response = await axios.post(`/reservas/create`, {
@@ -85,10 +88,14 @@ const ReservationsScreen = () => {
             setModalVisible(false);
         } catch (error) {
             console.error('Error al realizar la reserva:', error.response || error);
-            Alert.alert('Error', 'Hubo un problema al realizar la reserva.');
+            // Verifica si hay un error específico de la API
+            if (error.response && error.response.data && error.response.data.error) {
+                Alert.alert('Error de reserva', error.response.data.error);
+            } else {
+                Alert.alert('Error', 'Hubo un problema al realizar la reserva.');
+            }
         }
     };
-
 
 
     const handleCancel = () => {
@@ -150,6 +157,10 @@ const ReservationsScreen = () => {
                             onCancel={() => setTimePickerVisibility(false)}
                         />
                     )}
+                    {/* Mostrar horario inicial y final */}
+                    <Text style={styles.dateText}>
+                        Hora de inicio: {selectedTime} - Hora de fin: {selectedTime ? moment.tz(`${selectedDate} ${selectedTime}`, 'America/Bogota').add(reservationDuration, 'hours').format('HH:mm') : 'N/A'}
+                    </Text>
                     <TouchableOpacity
                         style={[styles.button, styles.buttonClose]}
                         onPress={handleReserve}
