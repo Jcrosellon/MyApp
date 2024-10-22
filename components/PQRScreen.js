@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import api from '../api/axios';
 
 export default function PQRScreen() {
-  const [type, setType] = useState('');
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState([]);
   const [pqrTypes, setPqrTypes] = useState([]);
@@ -15,7 +14,7 @@ export default function PQRScreen() {
   useEffect(() => {
     const fetchPqrTypes = async () => {
       try {
-        const response = await api.get('/pqr_tipos');
+        const response = await api.get('/pqr_tipo');
         setPqrTypes(response.data.data);
       } catch (error) {
         console.error('Error fetching PQR types:', error);
@@ -29,15 +28,15 @@ export default function PQRScreen() {
     try {
       const result = await DocumentPicker.getDocumentAsync({ multiple: true });
       if (result.type === 'success') {
-        setFiles(result.files);
+        setFiles(result.selected); // Cambia result.files a result.selected
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error selecting files:', error);
     }
   };
 
+
   const handleSendPQR = async () => {
-    // Validación de campos
     if (!selectedType || !message) {
       Alert.alert('Error', 'Por favor selecciona el tipo de PQR y escribe tu mensaje.');
       return;
@@ -45,40 +44,84 @@ export default function PQRScreen() {
 
     try {
       const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+
+      if (!userId) {
+        Alert.alert('Error', 'El ID del usuario no está disponible.');
+        return;
+      }
+
+      // Asignación de IDs
+      const estadoId = 1; // Este ID debe existir en la tabla de estados
+      const usuarioId = parseInt(userId); // Asegúrate de que sea un número
+      const pqrTipoId = parseInt(selectedType); // Asegúrate de que sea un número
+
       const formData = new FormData();
       formData.append('DETALLE', message);
-      formData.append('ESTADO_ID', 1);
-      formData.append('USUARIO_ID', 1);
-      formData.append('PQR_TIPO_ID', selectedType);
+      formData.append('ESTADO_ID', estadoId);
+      formData.append('USUARIO_ID', usuarioId);
+      formData.append('PQR_TIPO_ID', pqrTipoId);
       formData.append('FECHA_SOLICITUD', new Date().toISOString());
-      formData.append('FECHA_RESPUESTA', '');
       formData.append('RESPUESTA', '');
 
-      files.forEach((file, index) => {
-        formData.append(`file_${index}`, {
-          uri: file.uri,
-          name: file.name,
-          type: file.mimeType
+      // Solo agregar archivos si existen
+      if (files.length > 0) {
+        files.forEach((file, index) => {
+          if (file) {
+            formData.append(`file_${index}`, {
+              uri: file.uri,
+              name: file.name,
+              type: file.mimeType || 'application/octet-stream',
+            });
+          }
         });
+      } else {
+        console.log('No se seleccionaron archivos para enviar.');
+      }
+
+      // Log de los datos a enviar
+      console.log('Datos enviados:', {
+        DETALLE: message,
+        ESTADO_ID: estadoId,
+        USUARIO_ID: usuarioId,
+        PQR_TIPO_ID: pqrTipoId,
+        FECHA_SOLICITUD: new Date().toISOString(),
+        RESPUESTA: '',
+        files: files.length > 0 ? files : 'No se enviaron archivos',
       });
 
-      await api.post('/pqr/create', formData, {
+      const response = await api.post('/pqr/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Reset fields after sending PQR
-      setMessage('');
-      setFiles([]);
-      setSelectedType('');
-      Alert.alert('PQR Enviado', 'Tu PQR ha sido enviado');
+      console.log('Respuesta del servidor:', response);
+
+      if (response.data.message) {
+        Alert.alert('Éxito', response.data.message);
+        // Limpieza de estado
+        setMessage('');
+        setFiles([]);
+        setSelectedType('');
+      } else {
+        Alert.alert('Error', 'No se recibió respuesta del servidor');
+      }
+
     } catch (error) {
-      Alert.alert('Error', 'No se pudo enviar la PQR');
-      console.error(error);
+      console.error('Error al enviar PQR:', error);
+      if (error.response) {
+        console.error('Respuesta del servidor:', error.response.data);
+        const errorMessage = error.response.data.message || 'No se pudo enviar la PQR';
+        Alert.alert('Error', errorMessage);
+      } else {
+        Alert.alert('Error', 'No se pudo enviar la PQR');
+      }
     }
   };
+
+
 
   return (
     <ScrollView>
@@ -88,13 +131,18 @@ export default function PQRScreen() {
         </Text>
 
         <Text style={styles.title}>Tipo de PQR</Text>
-        <Picker style={styles.picker}
+        <Picker
+          style={styles.picker}
           selectedValue={selectedType}
           onValueChange={(itemValue) => setSelectedType(itemValue)}
         >
-          {pqrTypes.map((type) => (
-            <Picker.Item key={type.ID} label={type.NOMBRE} value={type.ID} />
-          ))}
+          {pqrTypes.length > 0 ? (
+            pqrTypes.map((type) => (
+              <Picker.Item key={type.ID} label={type.NOMBRE} value={type.ID} />
+            ))
+          ) : (
+            <Picker.Item label="Cargando tipos..." value="" />
+          )}
         </Picker>
 
         <Text style={styles.title}>Mensaje</Text>
@@ -135,7 +183,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 22,
     lineHeight: 24,
-    padding: -10,
     marginBottom: 20,
     marginTop: 20,
     textAlign: 'center',
@@ -157,10 +204,10 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 4,
     padding: 10,
-    height: 120,  // Mayor altura para ver el mensaje
+    height: 120,
     marginTop: 10,
     marginBottom: 20,
-    textAlignVertical: 'top',  // Para que el texto comience desde arriba
+    textAlignVertical: 'top',
   },
   button: {
     backgroundColor: '#A6A6A6FF',
